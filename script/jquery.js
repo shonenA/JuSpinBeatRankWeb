@@ -1,0 +1,1 @@
+/home/hitel00000/www/htdocs/script/jquery.js

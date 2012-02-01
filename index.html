@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width" />
+<meta chatset="utf-8">
+<title>JuSpinBeat Contest Rank</title>
+<link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" media="screen" />
+<style type="text/css">
+  /* Override some defaults */
+  html, body {
+    background-color: #eee;
+  }
+  body {
+    /*padding-top: 40px;*/ /* 40px to make the container go all the way to the bottom of the topbar */
+  }
+  .container {
+    width: 900px; /* downsize our container to make the content feel a bit tighter and more cohesive. NOTE: this removes two full columns from the grid, meaning you only go to 14 columns and not 16. */
+  }
+
+  .container-fluid {
+      min-width: 280px;
+  }
+
+  /* The white background content wrapper */
+  .container-fluid > .content {
+    background-color: #fff;
+    padding: 20px;
+    padding-top: 60px;
+    margin: 0 -20px; /* negative indent the amount of the padding to maintain the grid system */
+    -webkit-border-radius: 0 0 6px 6px;
+       -moz-border-radius: 0 0 6px 6px;
+            border-radius: 0 0 6px 6px;
+    -webkit-box-shadow: 0 1px 2px rgba(0,0,0,.15);
+       -moz-box-shadow: 0 1px 2px rgba(0,0,0,.15);
+            box-shadow: 0 1px 2px rgba(0,0,0,.15);
+  }
+
+  /* Page header tweaks */
+  .page-header {
+    background-color: #f5f5f5;
+    padding: 20px 20px 10px;
+    margin: -20px -20px 20px;
+  }
+
+  .item {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin: 0;
+    border-bottom: 1px solid #ddd;
+  }
+
+  @media (max-width: 640px) {
+      .modal { width: 320px; margin-left: -160px; margin-top: -160px; }
+      .modal-body { width: 260px; }
+  }
+
+
+  /* jbt */
+  .records th { text-align: center; background: #444; color: white; }
+
+  .difficulty-BASIC { background: #484 !important; color: white; }
+  .difficulty-ADVANCED { background: #884 !important; color: white; }
+  .difficulty-EXTREME { background: #955 !important; color: white; }
+
+  .record td { vertical-align: middle; }
+  .record .rank { font-size: 40px; color: #CCC; font-family: Tahoma; }
+  .record .score { font-size: 18px; }
+</style>
+
+</head>
+<body>
+<div class="topbar">
+    <div class="fill">
+        <div class="container-fluid">
+            <a class="brand" href="#top">JuSpinBeat Contest Rank</a>
+            <ul class="nav">
+                <li><a href="#record">Record</a></li>
+                <li><a href="#history">History</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="content" id="record">
+        <div class="page-header">
+            <h1>Record</h1>
+        </div>
+    </div>
+
+    <div class="content" id="history">
+        <div class="page-header">
+            <h1>History</h1>
+        </div>
+    </div>
+</div>
+
+<script src="script/jquery.js"></script>
+<script src="script/jquery.tablesorter.js"></script>
+<script>
+$(function(){
+    function makeUserRecords( records ) {
+        var ret = '<tbody>';
+        var r = new Array()
+        for( i in records ) {
+            records[i].name = i;
+            var total = 0;
+            for( j in records[i] ) {
+                if( new Number(records[i][j]) == records[i][j] )
+                    total += new Number(records[i][j]);
+            }
+            records[i].total = total;
+            r.push(records[i]);
+        }
+        r.sort(function(a, b) {
+            return a.total > b.total ? -1 : 1;
+        });
+
+        function addCommas(nStr)
+        {
+            nStr += '';
+            x = nStr.split('.');
+            x1 = x[0];
+            x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + ',' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function formatScore( score, rank ) {
+            if( typeof(rank) === 'undefined' ) {
+                rank = score;
+            }
+            var html = '<span class="rank">';
+            if( rank < 500000 ) html += "E";
+            else if( rank < 700000 ) html += "D";
+            else if( rank < 800000 ) html += "C";
+            else if( rank < 850000 ) html += "B";
+            else if( rank < 900000 ) html += "A";
+            else if( rank < 950000 ) html += "S";
+            else if( rank < 980000 ) html += "SS";
+            else if( rank < 1000000 ) html += "SSS";
+            else html += "EXC";
+            html += '</span>';
+            html += '<span class="score pull-right">'+addCommas(score)+'</span>';
+            return html;
+        }
+
+        for( i in r ) {
+            var c = r[i];
+
+            ret += '<tr class="record">';
+            ret += '<td>' + (c.name + "<br />" + c.last_played) + '</td>';
+
+            var played = 0;
+            for( j in c ) {
+                if( new Number(j) == j ) {
+                    ret += '<td>' + formatScore(c[j]) + '</td>';
+                    if( c[j] > 0 ) played++;
+                }
+            }
+            played = played?played:1;
+            ret += '<td>' + formatScore(c.total, c.total/played) + '</td>';
+            ret += "</tr>";
+        }
+        ret += '</tbody>';
+        return ret;
+    }
+
+    function makeHeader( musiclist ) {
+        var ret = '<thead><tr><th>User</th>';
+        for( i in musiclist ) {
+            var c = musiclist[i];
+            var cl = "difficulty-" + c[1];
+            ret += '<th class="'+ cl +'">' + c[0] + '</th>';
+        }
+        ret += "<th>Total</th></tr></thead>";
+        return ret;
+    }
+
+    function makeHistory( history ) {
+        var ret = '<table class="history"><thead>';
+        ret += '<tr>';
+        ret += '<th>Date</th>';
+        ret += '<th>User</th>';
+        ret += '<th>Music</th>';
+        ret += '<th>Score</th>';
+        ret += '</tr></thead><tbody>';
+        for( i in history ) {
+            var c = history[i];
+            ret += '<tr>';
+            ret += '<td>'+c.date+'</td>';
+            ret += '<td>'+c.user+'</td>';
+            ret += '<td class="difficulty-'+c.difficulty+'">'+c.music+'</td>';
+            ret += '<td>'+c.score+'</td>';
+            ret += '</tr>';
+        }
+        ret += '</tbody></table>';
+        return ret;
+    }
+
+    var scoreExtract = function(cell) {
+        return new Number($(cell).find('.score').text().replace(',',''));
+    }
+
+    $.getJSON('http://laika.redfeel.net:4416/?callback=?',function(data){
+        if( typeof(data) === 'undefined' ) return;
+
+        var html = '<table class="records">';
+        if( typeof(data.musiclist) !== 'undefined' ) {
+            html += makeHeader(data.musiclist);
+        }
+
+        if( typeof(data.user_records) !== 'undefined' ) {
+            html += makeUserRecords(data.user_records);
+        }
+        html += "</table>";
+
+        $('#record').append(html);
+        $('.records').tablesorter({
+            headers:{0:{sorter:false}},
+            textExtraction: function(cell) {
+                return new Number($(cell).find('.score').text().replace(/,/g,'')) * -1;
+            },
+            sortList:[[6,0]]
+            });
+
+        html = '';
+        if( typeof(data.history) !== 'undefined' ) {
+            html += makeHistory(data.history);
+        }
+        $('#history').append(html);
+        $('.history').tablesorter({sortList:[[0,1]]});
+    });
+});
+</script>
+</body>
+</html>
