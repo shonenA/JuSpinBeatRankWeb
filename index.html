@@ -5,6 +5,7 @@
 <meta chatset="utf-8">
 <title>JuSpinBeat Contest Rank</title>
 <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" media="screen" />
+<!--link href="/bootstrap2/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="screen" /-->
 <style type="text/css">
   /* Override some defaults */
   html, body {
@@ -65,12 +66,13 @@
   .record td { vertical-align: middle; }
   .record .rank { font-size: 40px; color: #CCC; font-family: Tahoma; }
   .record .score { font-size: 18px; }
+  .record .best-diff { font-size: 10px; }
 </style>
 
 </head>
 <body>
-<div class="topbar">
-    <div class="fill">
+<div class="topbar navbar">
+    <div class="fill navbar-inner">
         <div class="container-fluid">
             <a class="brand" href="#top">JuSpinBeat Contest Rank</a>
             <ul class="nav">
@@ -102,6 +104,7 @@ $(function(){
     function makeUserRecords( records ) {
         var ret = '<tbody>';
         var r = new Array()
+        var best = 0;
         for( i in records ) {
             records[i].name = i;
             var total = 0;
@@ -110,6 +113,7 @@ $(function(){
                     total += new Number(records[i][j]);
             }
             records[i].total = total;
+            if( best < total ) best = total;
             r.push(records[i]);
         }
         r.sort(function(a, b) {
@@ -152,7 +156,7 @@ $(function(){
             var c = r[i];
 
             ret += '<tr class="record">';
-            ret += '<td>' + (c.name + "<br />" + c.last_played) + '</td>';
+            ret += '<td>' + (c.name + ' <span class="pull-right best-diff">(' + (addCommas(c.total - best)) + ')</span><br />' + c.last_played) + '</td>';
 
             var played = 0;
             for( j in c ) {
@@ -201,11 +205,27 @@ $(function(){
         return ret;
     }
 
-    var scoreExtract = function(cell) {
-        return new Number($(cell).find('.score').text().replace(',',''));
+    function prepareHistory( history ) {
+        history.sort(function(a,b){return a.date < b.date ? -1 : 1; });
+        var table = {};
+        for( i in history ) {
+            var c = history[i];
+            var key = c.user + ':' + c.music + ':' + c.difficulty;
+            if( typeof(table[key]) === 'undefined' ) {
+                table[key] = 0;
+            }
+            c.score = new Number(c.score);
+            var diff = c.score - table[key];
+            if( diff > 0 ) {
+                table[key] = c.score;
+            }
+            if( diff >= 0 ) diff = '+' + diff;
+            c.score += (' (' + diff + ')');
+        }
     }
 
     $.getJSON('http://laika.redfeel.net:4416/?callback=?',function(data){
+
         if( typeof(data) === 'undefined' ) return;
 
         var html = '<table class="records">';
@@ -229,6 +249,7 @@ $(function(){
 
         html = '';
         if( typeof(data.history) !== 'undefined' ) {
+            prepareHistory(data.history);
             html += makeHistory(data.history);
         }
         $('#history').append(html);
