@@ -901,15 +901,6 @@
     });
 
     ts.addParser({
-        id: "currency",
-        is: function (s) {
-            return /^[£$€?.]/.test(s);
-        }, format: function (s) {
-            return $.tablesorter.formatFloat(s.replace(new RegExp(/[£$€]/g), ""));
-        }, type: "numeric"
-    });
-
-    ts.addParser({
         id: "ipAddress",
         is: function (s) {
             return /^\d{2,3}[\.]\d{2,3}[\.]\d{2,3}[\.]\d{2,3}$/.test(s);
