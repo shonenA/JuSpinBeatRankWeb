@@ -123,6 +123,8 @@ var _params = location.search.substr(1).split("&"), _return_dict={};
 })(window);
 
 $(function(){
+    var API_DOMAIN = "http://laika.redfeel.net:4416";
+
     function makeUserRecords( records ) {
         var ret = '<tbody>';
         var r = new Array()
@@ -246,45 +248,61 @@ $(function(){
         }
     }
 
-  var contest = params['contest'];
-  if ( contest ) {
+    function init( contest ) {
+        $.getJSON(API_DOMAIN + '/contest/'+contest+'?callback=?',function(data){
+            if( typeof(data) === 'undefined' ) return;
 
-    $.getJSON('http://laika.redfeel.net:4416/contest/'+contest+'?callback=?',function(data){
-        if( data.code !== 'ok' ) {
-            // TODO 적절한 에러 핸들링
-            return;
-        }
+            if( data.code !== 'ok' ) {
+                // TODO 적절한 에러 핸들링
+                return;
+            }
 
-        if( typeof(data) === 'undefined' ) return;
+            var html = '<table class="records">';
+            if( typeof(data.music_list) !== 'undefined' ) {
+                html += makeHeader(data.music_list);
+            }
 
-        var html = '<table class="records">';
-        if( typeof(data.music_list) !== 'undefined' ) {
-            html += makeHeader(data.music_list);
-        }
+            if( typeof(data.user_records) !== 'undefined' ) {
+                html += makeUserRecords(data.user_records);
+            }
+            html += "</table>";
 
-        if( typeof(data.user_records) !== 'undefined' ) {
-            html += makeUserRecords(data.user_records);
-        }
-        html += "</table>";
+            $('#record').append(html);
+            $('.records').tablesorter({
+                headers:{0:{sorter:false}},
+                textExtraction: function(cell) {
+                    return new Number($(cell).find('.score').text().replace(/,/g,'')) * -1;
+                },
+                sortList:[[6,0]]
+                });
 
-        $('#record').append(html);
-        $('.records').tablesorter({
-            headers:{0:{sorter:false}},
-            textExtraction: function(cell) {
-                return new Number($(cell).find('.score').text().replace(/,/g,'')) * -1;
-            },
-            sortList:[[6,0]]
-            });
+            html = '';
+            if( typeof(data.history) !== 'undefined' ) {
+                prepareHistory(data.history);
+                html += makeHistory(data.history);
+            }
+            $('#history').append(html);
+            $('.history').tablesorter({sortList:[[0,1]]});
+        });
+    }
 
-        html = '';
-        if( typeof(data.history) !== 'undefined' ) {
-            prepareHistory(data.history);
-            html += makeHistory(data.history);
-        }
-        $('#history').append(html);
-        $('.history').tablesorter({sortList:[[0,1]]});
-    });
-  }  
+    var contest = params['contest'];
+    if ( 'undefined' === typeof contest ) {
+        $.getJSON(API_DOMAIN + '/contest?callback=?', function(data) {
+            if( data.code !== 'ok' ) {
+                return;
+            }
+
+            var contestList = data.current_contest_list;
+            if( contestList.length == 0 ) {
+                return;
+            }
+
+            init(contestList[Math.floor(Math.random() * contestList.length)].id);
+        });
+    } else {
+        init(contest);
+    }
 });
 </script>
 </body>
