@@ -84,6 +84,12 @@
             <ul class="nav">
                 <li><a href="#record">Record</a></li>
                 <li><a href="#history">History</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">List</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">a</a></li>
+                    </ul>
+                </li>
             </ul>
         </div>
     </div>
@@ -105,6 +111,7 @@
 
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 <script src="script/jquery.tablesorter.js"></script>
+<script src="/bootstrap/js/bootstrap-dropdown.js"></script>
 <script>
 (function (global) {    
 var _params = location.search.substr(1).split("&"), _return_dict={};
@@ -123,9 +130,8 @@ $(function(){
         for( i in records ) {
             records[i].name = i;
             var total = 0;
-            for( j in records[i] ) {
-                if( new Number(records[i][j]) == records[i][j] )
-                    total += new Number(records[i][j]);
+            for( j in records[i]['scores'] ) {
+                total += new Number(records[i]['scores'][j]);
             }
             records[i].total = total;
             if( best < total ) best = total;
@@ -169,13 +175,13 @@ $(function(){
 
         for( i in r ) {
             var c = r[i];
+            var scores = c.scores;
 
             ret += '<tr class="record">';
             ret += '<td>' + (c.name + ' <span class="pull-right best-diff">(' + (addCommas(c.total - best)) + ')</span><br />' + c.last_played) + '</td>';
 
             var played = 0;
-            c.length = 10;
-            cArray = c['scores']// [].slice.call(c,0)
+            cArray = scores// [].slice.call(c,0)
             for ( j in cArray )
             {
                 ret += '<td>' + formatScore(cArray[j]) + '</td>';
@@ -244,11 +250,16 @@ $(function(){
   if ( contest ) {
 
     $.getJSON('http://laika.redfeel.net:4416/contest/'+contest+'?callback=?',function(data){
+        if( data.code !== 'ok' ) {
+            // TODO 적절한 에러 핸들링
+            return;
+        }
+
         if( typeof(data) === 'undefined' ) return;
 
         var html = '<table class="records">';
-        if( typeof(data.musiclist) !== 'undefined' ) {
-            html += makeHeader(data.musiclist);
+        if( typeof(data.music_list) !== 'undefined' ) {
+            html += makeHeader(data.music_list);
         }
 
         if( typeof(data.user_records) !== 'undefined' ) {
