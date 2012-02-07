@@ -165,11 +165,12 @@ $(function(){
             ret += '<td>' + (c.name + ' <span class="pull-right best-diff">(' + (addCommas(c.total - best)) + ')</span><br />' + c.last_played) + '</td>';
 
             var played = 0;
-            for( j in c ) {
-                if( new Number(j) == j ) {
-                    ret += '<td>' + formatScore(c[j]) + '</td>';
-                    if( c[j] > 0 ) played++;
-                }
+            c.length = 10;
+            cArray = [].slice.call(c,0)
+            for ( j in cArray )
+            {
+                ret += '<td>' + formatScore(cArray[j]) + '</td>';
+                if( cArray[j] > 0 ) played++;
             }
             played = played?played:1;
             ret += '<td>' + formatScore(c.total, c.total/played) + '</td>';
@@ -230,7 +231,7 @@ $(function(){
         }
     }
 
-    $.getJSON('http://laika.redfeel.net:4416/?callback=?',function(data){
+    $.getJSON('http://laika.redfeel.net:4416/201205?callback=?',function(data){
 
         if( typeof(data) === 'undefined' ) return;
 
