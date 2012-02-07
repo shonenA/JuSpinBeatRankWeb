@@ -106,6 +106,15 @@
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 <script src="script/jquery.tablesorter.js"></script>
 <script>
+(function (global) {    
+var _params = location.search.substr(1).split("&"), _return_dict={};
+  for ( var i = 0; i < _params.length; ++i ) {
+    t = _params[i].split("=")
+    _return_dict[t[0]] = t[1]
+  }
+  global.params = _return_dict;
+})(window);
+
 $(function(){
     function makeUserRecords( records ) {
         var ret = '<tbody>';
@@ -166,7 +175,7 @@ $(function(){
 
             var played = 0;
             c.length = 10;
-            cArray = [].slice.call(c,0)
+            cArray = c['scores']// [].slice.call(c,0)
             for ( j in cArray )
             {
                 ret += '<td>' + formatScore(cArray[j]) + '</td>';
@@ -231,7 +240,10 @@ $(function(){
         }
     }
 
-    $.getJSON('http://laika.redfeel.net:4416/201205?callback=?',function(data){
+  var contest = params['contest'];
+  if ( contest ) {
+
+    $.getJSON('http://laika.redfeel.net:4416/contest/'+contest+'?callback=?',function(data){
         if( typeof(data) === 'undefined' ) return;
 
         var html = '<table class="records">';
@@ -261,6 +273,7 @@ $(function(){
         $('#history').append(html);
         $('.history').tablesorter({sortList:[[0,1]]});
     });
+  }  
 });
 </script>
 </body>
