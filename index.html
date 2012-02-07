@@ -113,6 +113,15 @@
 <script src="script/jquery.tablesorter.js"></script>
 <script src="/bootstrap/js/bootstrap-dropdown.js"></script>
 <script>
+(function (global) {    
+var _params = location.search.substr(1).split("&"), _return_dict={};
+  for ( var i = 0; i < _params.length; ++i ) {
+    t = _params[i].split("=")
+    _return_dict[t[0]] = t[1]
+  }
+  global.params = _return_dict;
+})(window);
+
 $(function(){
     function makeUserRecords( records ) {
         var ret = '<tbody>';
@@ -172,8 +181,7 @@ $(function(){
             ret += '<td>' + (c.name + ' <span class="pull-right best-diff">(' + (addCommas(c.total - best)) + ')</span><br />' + c.last_played) + '</td>';
 
             var played = 0;
-            scores.length = 10;
-            cArray = [].slice.call(scores,0)
+            cArray = scores// [].slice.call(c,0)
             for ( j in cArray )
             {
                 ret += '<td>' + formatScore(cArray[j]) + '</td>';
@@ -238,7 +246,10 @@ $(function(){
         }
     }
 
-    $.getJSON('http://laika.redfeel.net:4416/contest/340737409578?callback=?',function(data){
+  var contest = params['contest'];
+  if ( contest ) {
+
+    $.getJSON('http://laika.redfeel.net:4416/contest/'+contest+'?callback=?',function(data){
         if( data.code !== 'ok' ) {
             // TODO 적절한 에러 핸들링
             return;
@@ -273,6 +284,7 @@ $(function(){
         $('#history').append(html);
         $('.history').tablesorter({sortList:[[0,1]]});
     });
+  }  
 });
 </script>
 </body>
