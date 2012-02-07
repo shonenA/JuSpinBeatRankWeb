@@ -87,7 +87,6 @@
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle">List</a>
                     <ul class="dropdown-menu">
-                        <li><a href="#">a</a></li>
                     </ul>
                 </li>
             </ul>
@@ -112,18 +111,24 @@
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 <script src="script/jquery.tablesorter.js"></script>
 <script src="script/juspinbeat.js"></script>
-<script src="/bootstrap/js/bootstrap-dropdown.js"></script>
 <script>
 (function (global) {    
 var _params = location.search.substr(1).split("&"), _return_dict={};
-  for ( var i = 0; i < _params.length; ++i ) {
+for ( var i = 0; i < _params.length; ++i ) {
     t = _params[i].split("=")
     _return_dict[t[0]] = t[1]
-  }
-  global.params = _return_dict;
+}
+global.params = _return_dict;
 })(window);
 
 $(function(){
+    // dropdown
+    $('.dropdown-toggle').click(function(){
+        $('.dropdown-menu').toggle();
+        return false;
+    });
+
+
     var API_DOMAIN = "http://laika.redfeel.net:4416";
 
     function dataValidate( data, mandatory ) {
@@ -141,13 +146,13 @@ $(function(){
         return true;
     }
 
-    function init( contestId ) {
+    function initTable( contestId ) {
+        // Record Table
         $.getJSON(API_DOMAIN + '/contest/'+contestId+'?callback=?',function(data){
             if( !dataValidate(data, ['music_list', 'user_records']) ) {
                 return;
             }
 
-            // Record Table
             var html = '<table class="records">';
             html += makeHeader(data.music_list);
             html += makeUserRecords(data.user_records);
@@ -155,32 +160,38 @@ $(function(){
 
             $('#record').append(html);
             $('.records').tablesorter({
-                headers:{0:{sorter:false}},
-                textExtraction: function(cell) {
-                    return new Number($(cell).find('.score').text().replace(/,/g,'')) * -1;
-                },
-                sortList:[[6,0]]
+                    headers:{0:{sorter:false}},
+                    textExtraction: function(cell) {
+                        return new Number($(cell).find('.score').text().replace(/,/g,'')) * -1;
+                    },
+                    sortList:[[6,0]]
                 });
 
-            // History Table
-            $.getJSON(API_DOMAIN + '/contest/' + contestId + '/history?callback=?', function(data) {
-                if( !dataValidate(data, ['history']) ) {
-                    return;
-                }
-
-                var html = '';
-                prepareHistory(data.history);
-                html += makeHistory(data.history);
-                $('#history').append(html);
-                $('.history').tablesorter({sortList:[[0,1]]});
-            });
         });
+
+        // History Table
+        $.getJSON(API_DOMAIN + '/contest/' + contestId + '/history?callback=?', function(data) {
+            if( !dataValidate(data, ['history']) ) {
+                return;
+            }
+
+            var html = '';
+            prepareHistory(data.history);
+            html += makeHistory(data.history);
+            $('#history').append(html);
+            $('.history').tablesorter({sortList:[[0,1]]});
+        });
+    }
+
+    function removeTable() {
+        $('.history').remove();
+        $('.records').remove();
     }
 
     var contest = params['contest'];
     if ( 'undefined' === typeof contest ) {
         $.getJSON(API_DOMAIN + '/contest?callback=?', function(data) {
-            if( data.code !== 'ok' ) {
+            if( !dataValidate(data, ['current_contest_list']) ) {
                 return;
             }
 
@@ -189,10 +200,20 @@ $(function(){
                 return;
             }
 
-            init(contestList[Math.floor(Math.random() * contestList.length)].id);
+            for( var i in contestList ) {
+                (function(i){
+                    var contest = contestList[i];
+                    $('<li>').append($('<a>').click(function() {
+                        removeTable();
+                        initTable(contest.id);
+                    }).text(contest.name)).appendTo('.dropdown-menu');
+                })(i);
+            }
+
+            initTable(contestList[Math.floor(Math.random()*contestList.length)].id);
         });
     } else {
-        init(contest);
+        initTable(contest);
     }
 });
 </script>
