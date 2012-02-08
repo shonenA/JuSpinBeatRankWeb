@@ -82,7 +82,7 @@ function makeHeader( musiclist ) {
 }
 
 function makeHistory( history ) {
-    var ret = '<table class="history"><thead>';
+    var ret = '<table class="history table"><thead>';
     ret += '<tr>';
     ret += '<th>Date</th>';
     ret += '<th>User</th>';
@@ -107,7 +107,7 @@ function prepareHistory( history ) {
     var table = {};
     for( i in history ) {
         var c = history[i];
-        var key = c.user + ':' + c.music + ':' + c.difficulty;
+        var key = c.user_name + ':' + c.music + ':' + c.difficulty;
         if( typeof(table[key]) === 'undefined' ) {
             table[key] = 0;
         }

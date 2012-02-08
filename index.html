@@ -56,11 +56,6 @@
     border-bottom: 1px solid #ddd;
   }
 
-  @media (max-width: 640px) {
-      .modal { width: 320px; margin-left: -160px; margin-top: -160px; }
-      .modal-body { width: 260px; }
-  }
-
 
   /* jbt */
   .records th { text-align: center; background: #444; color: white; }
@@ -124,7 +119,7 @@ global.params = _return_dict;
 $(function(){
     // dropdown
     $('.dropdown-toggle').click(function(){
-        $('.dropdown-menu').toggle();
+        $('.dropdown-menu').toggle().find('a').click(function(){$('.dropdown-menu').toggle();});
         return false;
     });
 
