@@ -95,7 +95,7 @@ function makeHistory( history ) {
         ret += '<td>'+c.date+'</td>';
         ret += '<td>'+c.user_name+'</td>';
         ret += '<td class="difficulty-'+c.difficulty+'">'+c.music+'</td>';
-        ret += '<td>'+c.score+'</td>';
+        ret += '<td>'+c.displayScore+'</td>';
         ret += '</tr>';
     }
     ret += '</tbody></table>';
@@ -117,7 +117,7 @@ function prepareHistory( history ) {
             table[key] = c.score;
         }
         if( diff >= 0 ) diff = '+' + diff;
-        c.score += (' (' + diff + ')');
+        c.displayScore = c.score + (' (' + diff + ')');
     }
 }
 

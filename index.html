@@ -128,6 +128,26 @@ $(function(){
         return false;
     });
 
+    // cache
+    $.juspinbeat = $.juspinbeat || {};
+    $.juspinbeat.cache = $.juspinbeat.cache || {'record':{},'history':{}};
+
+    $.juspinbeat.busy = function(work, value) {
+        var works = ['record', 'history'];
+        if( 'boolean' === typeof value ) {
+            this[work] = value;
+            return this;
+        }
+
+        for( var i in works ) {
+            if( this[works[i]] ) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    $.juspinbeat.currentContestId = null;
 
     var API_DOMAIN = "http://laika.redfeel.net:4416";
 
@@ -146,41 +166,64 @@ $(function(){
         return true;
     }
 
-    function initTable( contestId ) {
-        // Record Table
-        $.getJSON(API_DOMAIN + '/contest/'+contestId+'?callback=?',function(data){
-            if( !dataValidate(data, ['music_list', 'user_records']) ) {
-                return;
-            }
+    function renderRecordTable(data) {
+        if( !dataValidate(data, ['music_list', 'user_records']) ) {
+            return;
+        }
 
-            var html = '<table class="records">';
-            html += makeHeader(data.music_list);
-            html += makeUserRecords(data.user_records);
-            html += "</table>";
+        var html = '<table class="records">';
+        html += makeHeader(data.music_list);
+        html += makeUserRecords(data.user_records);
+        html += "</table>";
 
-            $('#record').append(html);
-            $('.records').tablesorter({
-                    headers:{0:{sorter:false}},
-                    textExtraction: function(cell) {
-                        return new Number($(cell).find('.score').text().replace(/,/g,'')) * -1;
-                    },
-                    sortList:[[6,0]]
-                });
-
+        $('#record').append(html);
+        $('.records').tablesorter({
+            headers:{0:{sorter:false}},
+            textExtraction: function(cell) {
+            return new Number($(cell).find('.score').text().replace(/,/g,'')) * -1;
+            },
+            sortList:[[6,0]]
         });
+
+        $.juspinbeat.cache['record'][$.juspinbeat.currentContestId] = data;
+        $.juspinbeat.busy('record', false);
+    }
+
+    function renderHistoryTable(data) {
+        if( !dataValidate(data, ['history']) ) {
+            return;
+        }
+
+        var html = '';
+        prepareHistory(data.history);
+        html += makeHistory(data.history);
+        $('#history').append(html);
+        $('.history').tablesorter({sortList:[[0,1]]});
+
+        $.juspinbeat.cache['history'][$.juspinbeat.currentContestId] = data;
+        $.juspinbeat.busy('history', false);
+    }
+
+    function initTable( contestId ) {
+        if( $.juspinbeat.busy() ) return;
+
+        $.juspinbeat.currentContestId = contestId;
+
+        // Record Table
+        if( $.juspinbeat.cache['record'][contestId] ) {
+            renderRecordTable($.juspinbeat.cache['record'][contestId]);
+        } else {
+            $.juspinbeat.busy('record', true);
+            $.getJSON(API_DOMAIN + '/contest/' + contestId + '?callback=?', renderRecordTable);
+        }
 
         // History Table
-        $.getJSON(API_DOMAIN + '/contest/' + contestId + '/history?callback=?', function(data) {
-            if( !dataValidate(data, ['history']) ) {
-                return;
-            }
-
-            var html = '';
-            prepareHistory(data.history);
-            html += makeHistory(data.history);
-            $('#history').append(html);
-            $('.history').tablesorter({sortList:[[0,1]]});
-        });
+        if( $.juspinbeat.cache['history'][contestId] ) {
+            renderHistoryTable($.juspinbeat.cache['history'][contestId]);
+        } else {
+            $.juspinbeat.busy('history', true);
+            $.getJSON(API_DOMAIN + '/contest/' + contestId + '/history?callback=?', renderHistoryTable);
+        }
     }
 
     function removeTable() {
@@ -206,7 +249,7 @@ $(function(){
                     $('<li>').append($('<a>').click(function() {
                         removeTable();
                         initTable(contest.id);
-                    }).text(contest.name)).appendTo('.dropdown-menu');
+                    }).text(contest.name).css('cursor','pointer')).appendTo('.dropdown-menu');
                 })(i);
             }
 
