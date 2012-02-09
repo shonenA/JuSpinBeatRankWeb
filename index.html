@@ -119,8 +119,7 @@ global.params = _return_dict;
 $(function(){
     // dropdown
     $('.dropdown-toggle').click(function(){
-        $('.dropdown-menu').toggle().find('a').click(function(){$('.dropdown-menu').toggle();});
-        return false;
+        $('.dropdown-menu').toggle();
     });
 
     // cache
@@ -150,7 +149,7 @@ $(function(){
         // TODO 적절한 에러 핸들링
         if( 'undefined' === typeof data ) return false;
 
-        if( data.code !== 'ok' ) {
+        if( !(data.code === 'ok' || data.code === 'nodata') ) {
             return false;
         }
 
@@ -163,6 +162,7 @@ $(function(){
 
     function renderRecordTable(data) {
         if( !dataValidate(data, ['music_list', 'user_records']) ) {
+            $.juspinbeat.busy('record', false);
             return;
         }
 
@@ -186,6 +186,7 @@ $(function(){
 
     function renderHistoryTable(data) {
         if( !dataValidate(data, ['history']) ) {
+            $.juspinbeat.busy('history', false);
             return;
         }
 
@@ -238,15 +239,13 @@ $(function(){
                 return;
             }
 
-            for( var i in contestList ) {
-                (function(i){
-                    var contest = contestList[i];
-                    $('<li>').append($('<a>').click(function() {
-                        removeTable();
-                        initTable(contest.id);
-                    }).text(contest.name).css('cursor','pointer')).appendTo('.dropdown-menu');
-                })(i);
-            }
+            contestList.forEach(function(contest) {
+                $('<li>').append($('<a>').click(function() {
+                    $('.dropdown-menu').toggle();
+                    removeTable();
+                    initTable(contest.id);
+                }).text(contest.name).css('cursor','pointer')).appendTo('.dropdown-menu');
+            });
 
             initTable(contestList[Math.floor(Math.random()*contestList.length)].id);
         });
