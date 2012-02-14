@@ -77,10 +77,10 @@
         <div class="container-fluid">
             <a class="brand" href="#top">JuSpinBeat Contest Rank</a>
             <ul class="nav">
-                <li><a href="#record">Record</a></li>
-                <li><a href="#history">History</a></li>
+                <li><a class="nav-shortcut" to-href="record">Record</a></li>
+                <li><a class="nav-shortcut" to-href="history">History</a></li>
                 <li class="dropdown">
-                    <a href="#" class="dropdown-toggle">List</a>
+                    <a class="dropdown-toggle">List</a>
                     <ul class="dropdown-menu">
                     </ul>
                 </li>
@@ -107,13 +107,26 @@
 <script src="script/jquery.tablesorter.js"></script>
 <script src="script/juspinbeat.js"></script>
 <script>
+
+var valid_hash_regexp = new RegExp("\/contest\/\\d+\/.*");
+
+/*parameters*/
 (function (global) {    
-var _params = location.search.substr(1).split("&"), _return_dict={};
-for ( var i = 0; i < _params.length; ++i ) {
-    t = _params[i].split("=")
-    _return_dict[t[0]] = t[1]
-}
-global.params = _return_dict;
+    var _params = location.search.substr(1).split("&"), _return_dict={};
+    for ( var i = 0; i < _params.length; ++i ) {
+        t = _params[i].split("=")
+        _return_dict[t[0]] = t[1]
+    }
+    global.params = _return_dict;
+
+    var _hash = location.hash;
+    global.urlhash = {};
+    if ( _hash)  {
+        var matches= _hash.match(/\/contest\/(\d+)/);
+        if ( matches && matches.length > 1 )
+            global.urlhash.contest = matches[1]; 
+        
+    }
 })(window);
 
 $(function(){
@@ -121,6 +134,11 @@ $(function(){
     $('.dropdown-toggle').click(function(){
         $('.dropdown-menu').toggle().find('a').click(function(){$('.dropdown-menu').toggle();});
         return false;
+    });
+
+    $('.nav-shortcut').click(function() { 
+      var $t = $(this);
+      scrollTo(100,$("#"+$t.attr('to-href'))[0].offsetTop);
     });
 
     // cache
@@ -226,33 +244,36 @@ $(function(){
         $('.records').remove();
     }
 
-    var contest = params['contest'];
-    if ( 'undefined' === typeof contest ) {
-        $.getJSON(API_DOMAIN + '/contest?callback=?', function(data) {
-            if( !dataValidate(data, ['current_contest_list']) ) {
-                return;
-            }
+    var contest = urlhash['contest']//params['contest'];
+    var has_contest = !('undefined' === typeof contest);
+    $.getJSON(API_DOMAIN + '/contest?callback=?', function(data) {
+        if( !dataValidate(data, ['current_contest_list']) ) {
+            return;
+        }
 
-            var contestList = data.current_contest_list;
-            if( contestList.length == 0 ) {
-                return;
-            }
+        var contestList = data.current_contest_list;
+        if( contestList.length == 0 ) {
+            return;
+        }
 
-            for( var i in contestList ) {
-                (function(i){
-                    var contest = contestList[i];
-                    $('<li>').append($('<a>').click(function() {
-                        removeTable();
-                        initTable(contest.id);
-                    }).text(contest.name).css('cursor','pointer')).appendTo('.dropdown-menu');
-                })(i);
-            }
+        for( var i in contestList ) {
+            (function(i){
+                var _contest = contestList[i];
+                $('<li>').append($('<a>').click(function() {
+                    removeTable();
+                    initTable(_contest.id);
+                    location.hash = "/contest/"+_contest.id;
+                }).text(_contest.name).css('cursor','pointer')).appendTo('.dropdown-menu');
+            })(i);
+        }
 
-            initTable(contestList[Math.floor(Math.random()*contestList.length)].id);
-        });
-    } else {
-        initTable(contest);
-    }
+        if ( !has_contest ) {
+            urlhash['contest'] =  contestList[0].id;
+            location.hash = "/contest/"+contestList[0].id;
+            initTable(contestList[0].id);
+        }
+    });
+    (has_contest) && initTable(contest);
 });
 </script>
 </body>
