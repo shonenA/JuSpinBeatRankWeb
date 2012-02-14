@@ -11,17 +11,14 @@
 <meta chatset="utf-8">
 <title>JuSpinBeat Contest Rank</title>
 <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" media="screen" />
-<!--link href="/bootstrap2/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="screen" /-->
+<link href="css/bootstrap.min.responsive" rel="stylesheet" type="text/css" media="screen" />
 <style type="text/css">
   /* Override some defaults */
   html, body {
     background-color: #eee;
   }
-  body {
-    /*padding-top: 40px;*/ /* 40px to make the container go all the way to the bottom of the topbar */
-  }
   .container {
-    width: 900px; /* downsize our container to make the content feel a bit tighter and more cohesive. NOTE: this removes two full columns from the grid, meaning you only go to 14 columns and not 16. */
+    width: 900px;
   }
 
   .container-fluid {
@@ -56,7 +53,6 @@
     border-bottom: 1px solid #ddd;
   }
 
-
   /* jbt */
   .records th { text-align: center; background: #444; color: white; }
 
@@ -72,7 +68,7 @@
 
 </head>
 <body>
-<div class="topbar navbar">
+<div class="topbar navbar navbar-fixed-top">
     <div class="fill navbar-inner">
         <div class="container-fluid">
             <a class="brand" href="#top">JuSpinBeat Contest Rank</a>
@@ -84,6 +80,8 @@
                     <ul class="dropdown-menu">
                     </ul>
                 </li>
+            </ul>
+            <ul class="nav pull-right" id="link">
             </ul>
         </div>
     </div>
@@ -132,8 +130,7 @@ var valid_hash_regexp = new RegExp("\/contest\/\\d+\/.*");
 $(function(){
     // dropdown
     $('.dropdown-toggle').click(function(){
-        $('.dropdown-menu').toggle().find('a').click(function(){$('.dropdown-menu').toggle();});
-        return false;
+        $('.dropdown-menu').toggle();
     });
 
     $('.nav-shortcut').click(function() { 
@@ -163,12 +160,13 @@ $(function(){
     $.juspinbeat.currentContestId = null;
 
     var API_DOMAIN = "http://laika.redfeel.net:4416";
+    var CONTEST_BASE_URL = "http://p.eagate.573.jp/game/jubeat/copious/p/contest/detail.html?rally_id=";
 
     function dataValidate( data, mandatory ) {
         // TODO 적절한 에러 핸들링
         if( 'undefined' === typeof data ) return false;
 
-        if( data.code !== 'ok' ) {
+        if( data.code === 'error' ) {
             return false;
         }
 
@@ -181,13 +179,15 @@ $(function(){
 
     function renderRecordTable(data) {
         if( !dataValidate(data, ['music_list', 'user_records']) ) {
+            $.juspinbeat.busy('record', false);
             return;
         }
 
-        var html = '<table class="records">';
+        var html = '<table class="records table">';
         html += makeHeader(data.music_list);
         html += makeUserRecords(data.user_records);
         html += "</table>";
+
 
         $('#record').append(html);
         $('.records').tablesorter({
@@ -202,25 +202,72 @@ $(function(){
         $.juspinbeat.busy('record', false);
     }
 
+    function makePagination(data) {
+        var prev = ($.juspinbeat.currentPage > 1);
+        var next = (data.perpage * $.juspinbeat.currentPage < data.total);
+
+        var html = '<div class="pager">';
+        if(prev) html += '<li class="previous"><a onclick="javascript:$.juspinbeat.goHistory(\'newer\');">&larr; Newer</a></li>';
+        if(next) html += '<li class="next"><a onclick="javascript:$.juspinbeat.goHistory(\'older\');">Older &rarr;</a></li>';
+        html += '</div>';
+        return html;
+    }
+
+    $.juspinbeat.goHistory = function(direction) {
+        if( $.juspinbeat.busy() ) return;
+
+        if( direction == 'older' ) {
+            $.juspinbeat.currentPage++;
+        } else if( direction == 'newer' ) {
+            $.juspinbeat.currentPage--;
+        } else {
+            return;
+        }
+        
+        var url = API_DOMAIN + '/contest/' + $.juspinbeat.currentContestId + '/history';
+
+        if( $.juspinbeat.currentPage > 1 ) {
+            url += '/page/' + $.juspinbeat.currentPage;
+        }
+
+        $.juspinbeat.busy('history', true);
+        $('.history').remove();
+        $('.pager').remove();
+        $.getJSON(url + '?callback=?', renderHistoryTable);
+
+        return false;
+    }
+
     function renderHistoryTable(data) {
         if( !dataValidate(data, ['history']) ) {
+            $.juspinbeat.busy('history', false);
             return;
         }
 
         var html = '';
         prepareHistory(data.history);
         html += makeHistory(data.history);
+        html += makePagination(data);
         $('#history').append(html);
         $('.history').tablesorter({sortList:[[0,1]]});
 
-        $.juspinbeat.cache['history'][$.juspinbeat.currentContestId] = data;
+        // no-cache
+        //$.juspinbeat.cache['history'][$.juspinbeat.currentContestId] = data;
         $.juspinbeat.busy('history', false);
+        scrollTo(200,$("#history")[0].offsetTop);
     }
 
     function initTable( contestId ) {
         if( $.juspinbeat.busy() ) return;
 
         $.juspinbeat.currentContestId = contestId;
+        $.juspinbeat.currentPage = 1;
+
+        // Contest Link
+        $('#link').html($('<li>').append(
+            $('<a>').text('EAGATE')
+                .attr({'href': CONTEST_BASE_URL + contestId, 'target': '_blank'})
+            ));
 
         // Record Table
         if( $.juspinbeat.cache['record'][contestId] ) {
@@ -241,6 +288,7 @@ $(function(){
 
     function removeTable() {
         $('.history').remove();
+        $('.pager').remove();
         $('.records').remove();
     }
 
@@ -256,21 +304,19 @@ $(function(){
             return;
         }
 
-        for( var i in contestList ) {
-            (function(i){
-                var _contest = contestList[i];
-                $('<li>').append($('<a>').click(function() {
-                    removeTable();
-                    initTable(_contest.id);
-                    location.hash = "/contest/"+_contest.id;
-                }).text(_contest.name).css('cursor','pointer')).appendTo('.dropdown-menu');
-            })(i);
-        }
+        contestList.forEach(function(_contest) {
+          $('<li>').append($('<a>').click(function() {
+              $('.dropdown-menu').toggle();
+              removeTable();
+              initTable(_contest.id);
+              location.hash = "/contest/"+_contest.id;
+              }).text(_contest.name).css('cursor','pointer')).appendTo('.dropdown-menu');
+          });
 
         if ( !has_contest ) {
-            urlhash['contest'] =  contestList[0].id;
-            location.hash = "/contest/"+contestList[0].id;
-            initTable(contestList[0].id);
+          urlhash['contest'] =  contestList[0].id;
+          location.hash = "/contest/"+contestList[0].id;
+          initTable(contestList[0].id);
         }
     });
     (has_contest) && initTable(contest);
