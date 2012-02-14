@@ -64,6 +64,8 @@
   .record .rank { font-size: 40px; color: #CCC; font-family: Tahoma; }
   .record .score { font-size: 18px; }
   .record .best-diff { font-size: 10px; }
+
+  .nav-shortcut, .dropdown, .pager > .previous, .pager > .next { cursor: pointer; }
 </style>
 
 </head>
@@ -233,7 +235,10 @@ $(function(){
         $.juspinbeat.busy('history', true);
         $('.history').remove();
         $('.pager').remove();
-        $.getJSON(url + '?callback=?', renderHistoryTable);
+        $.getJSON(url + '?callback=?', function(data) {
+            renderHistoryTable(data);
+            scrollTo(200,$("#history")[0].offsetTop);
+        });
 
         return false;
     }
@@ -254,7 +259,6 @@ $(function(){
         // no-cache
         //$.juspinbeat.cache['history'][$.juspinbeat.currentContestId] = data;
         $.juspinbeat.busy('history', false);
-        scrollTo(200,$("#history")[0].offsetTop);
     }
 
     function initTable( contestId ) {
