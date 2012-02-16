@@ -54,15 +54,16 @@
   }
 
   /* jbt */
-  .records th { text-align: center; background: #444; color: white; }
+  .records th { text-align: center; background: #444; color: white; vertical-align: middle; }
+  .records th.user { min-width: 120px; }
 
   .difficulty-BASIC { background: #484 !important; color: white; }
   .difficulty-ADVANCED { background: #884 !important; color: white; }
   .difficulty-EXTREME { background: #955 !important; color: white; }
 
   .record td { vertical-align: middle; }
-  .record .rank { font-size: 40px; color: #CCC; font-family: Tahoma; }
-  .record .score { font-size: 18px; }
+  .record .rank { line-height: 0%; font-size: 40px; color: #DDD; font-family: Tahoma; }
+  .record .score { line-height: 0%; font-size: 18px;}
   .record .best-diff { font-size: 10px; }
 
   .nav-shortcut, .dropdown, .pager > .previous, .pager > .next { cursor: pointer; }

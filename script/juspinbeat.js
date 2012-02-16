@@ -33,7 +33,7 @@ function makeUserRecords( records ) {
         if( typeof(rank) === 'undefined' ) {
             rank = score;
         }
-        var html = '<span class="rank">';
+        var html = '<span class="rank pull-left">';
         if( rank < 500000 ) html += "E";
         else if( rank < 700000 ) html += "D";
         else if( rank < 800000 ) html += "C";
@@ -71,7 +71,17 @@ function makeUserRecords( records ) {
 }
 
 function makeHeader( musiclist ) {
-    var ret = '<thead><tr><th>User</th>';
+    var ret = '';
+    ret += '<colgroup>';
+    ret += '<col width="*" />';
+    ret += '<col width="14%" />';
+    ret += '<col width="14%" />';
+    ret += '<col width="14%" />';
+    ret += '<col width="14%" />';
+    ret += '<col width="14%" />';
+    ret += '<col width="14%" />';
+    ret += '</colgroup>';
+    ret += '<thead><tr><th class="user">User</th>';
     for( i in musiclist ) {
         var c = musiclist[i];
         var cl = "difficulty-" + c[1];
@@ -82,7 +92,14 @@ function makeHeader( musiclist ) {
 }
 
 function makeHistory( history ) {
-    var ret = '<table class="history table"><thead>';
+    var ret = '<table class="history table">'
+    ret += '<colgroup>';
+    ret += '<col width="25%" />';
+    ret += '<col width="20%" />';
+    ret += '<col width="*" />';
+    ret += '<col width="20%" />';
+    ret += '</colgroup>';
+    ret += '<thead>';
     ret += '<tr>';
     ret += '<th>Date</th>';
     ret += '<th>User</th>';
