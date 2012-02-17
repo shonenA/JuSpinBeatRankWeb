@@ -18,7 +18,7 @@
     background-color: #eee;
   }
   .container {
-    width: 900px;
+    width: 500px;
   }
 
   .container-fluid {
@@ -54,6 +54,7 @@
   }
 
   /* jbt */
+@media (min-width: 460px) {
   .records th { text-align: center; background: #444; color: white; vertical-align: middle; }
   .records th.user { min-width: 120px; }
 
@@ -67,6 +68,40 @@
   .record .best-diff { font-size: 10px; }
 
   .nav-shortcut, .dropdown, .pager > .previous, .pager > .next { cursor: pointer; }
+
+}
+@media (max-width: 459px) {
+  .container-fluid > .content {
+    background-color: #fff;
+    padding: 10px;
+    padding-top: 60px;
+  }
+
+  .records th { word-break: break-all;text-align: center; background: #444; color: white; vertical-align: middle; }
+  .records th.user { min-width: 60px; }
+  .difficulty-BASIC { background: #484 !important; color: white; }
+  .difficulty-ADVANCED { background: #884 !important; color: white; }
+  .difficulty-EXTREME { background: #955 !important; color: white; }
+
+  .record td { vertical-align: middle; }
+  .record .rank { line-height: 0%; font-size: 25px; color: #DDD; font-family: Tahoma; }
+
+  .record .score { 
+    font-size: 18px; 
+    width: 30px;
+    overflow: hidden;
+  	text-overflow: clip;
+  }
+  .record .total .score{ 
+    overflow: visible !important;
+  	text-overflow: string !important;
+  }
+
+  .record .best-diff { font-size: 10px; }
+
+  .nav-shortcut, .dropdown, .pager > .previous, .pager > .next { cursor: pointer; }
+}
+
 </style>
 
 </head>
@@ -138,7 +173,7 @@ $(function(){
 
     $('.nav-shortcut').click(function() { 
       var $t = $(this);
-      scrollTo(100,$("#"+$t.attr('to-href'))[0].offsetTop);
+      scrollTo(0,$("#"+$t.attr('to-href'))[0].offsetTop);
     });
 
     // cache
@@ -238,7 +273,7 @@ $(function(){
         $('.pager').remove();
         $.getJSON(url + '?callback=?', function(data) {
             renderHistoryTable(data);
-            scrollTo(200,$("#history")[0].offsetTop);
+            scrollTo(0,$("#history")[0].offsetTop);
         });
 
         return false;
