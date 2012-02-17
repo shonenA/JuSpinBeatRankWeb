@@ -53,7 +53,7 @@ function makeUserRecords( records ) {
         var scores = c.scores;
 
         ret += '<tr class="record">';
-        ret += '<td>' + (c.name + ' <span class="pull-right best-diff">(' + (addCommas(c.total - best)) + ')</span><br />' + c.last_played) + '</td>';
+        ret += '<td>' + (c.name + ' <span class="pull-right best-diff">(' + (addCommas(c.total - best)) + ')</span><br />' + c.last_played.substr(5)) + '</td>';
 
         var played = 0;
         cArray = scores// [].slice.call(c,0)
@@ -63,7 +63,7 @@ function makeUserRecords( records ) {
             if( cArray[j] > 0 ) played++;
         }
         played = played?played:1;
-        ret += '<td>' + formatScore(c.total, c.total/played) + '</td>';
+        ret += '<td class="total">' + formatScore(c.total, c.total/played) + '</td>';
         ret += "</tr>";
     }
     ret += '</tbody>';
