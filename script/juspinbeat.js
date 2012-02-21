@@ -52,8 +52,9 @@ function makeUserRecords( records ) {
         var c = r[i];
         var scores = c.scores;
 
+        var nameTag = '<a href="http://laika.redfeel.net:4416/user/' + c.rival_id + '/history" target="_user_history">' + c.name + '</a>';
         ret += '<tr class="record">';
-        ret += '<td>' + (c.name + ' <span class="pull-right best-diff">(' + (addCommas(c.total - best)) + ')</span><br />' + c.last_played.substr(5)) + '</td>';
+        ret += '<td>' + nameTag + '<br /><span class="pull-right best-diff">(' + (addCommas(c.total - best)) + ')</span></td>';
 
         var played = 0;
         cArray = scores// [].slice.call(c,0)
