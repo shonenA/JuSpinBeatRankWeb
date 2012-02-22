@@ -150,6 +150,7 @@
 
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 <script src="script/jquery.tablesorter.js"></script>
+<script src="script/jquery.route.js"></script>
 <script src="script/juspinbeat.js"></script>
 <script>
 
@@ -346,34 +347,50 @@ $(function(){
         $('.records').remove();
     }
 
-    var contest = urlhash['contest']//params['contest'];
-    var has_contest = !('undefined' === typeof contest);
-    $.getJSON(API_DOMAIN + '/contest?callback=?', function(data) {
-        if( !dataValidate(data, ['current_contest_list']) ) {
-            return;
-        }
+    $.route.addRoute('contest', function() {
+        var contest = urlhash['contest']//params['contest'];
+        var has_contest = !('undefined' === typeof contest);
+        $.getJSON(API_DOMAIN + '/contest?callback=?', function(data) {
+            if( !dataValidate(data, ['current_contest_list']) ) {
+                return;
+            }
 
-        var contestList = data.current_contest_list;
-        if( contestList.length == 0 ) {
-            return;
-        }
+            var contestList = data.current_contest_list;
+            if( contestList.length == 0 ) {
+                return;
+            }
 
-        contestList.forEach(function(_contest) {
-          $('<li>').append($('<a>').click(function() {
-              $('.dropdown-menu').toggle();
-              removeTable();
-              initTable(_contest.id);
-              location.hash = "/contest/"+_contest.id;
-              }).text(_contest.name).css('cursor','pointer')).appendTo('.dropdown-menu');
-          });
+            contestList.forEach(function(_contest) {
+              $('<li>').append($('<a>').click(function() {
+                  $('.dropdown-menu').toggle();
+                  removeTable();
+                  initTable(_contest.id);
+                  location.hash = "/contest/"+_contest.id;
+                  }).text(_contest.name).css('cursor','pointer')).appendTo('.dropdown-menu');
+              });
 
-        if ( !has_contest ) {
-          urlhash['contest'] =  contestList[0].id;
-          location.hash = "/contest/"+contestList[0].id;
-          initTable(contestList[0].id);
-        }
+            if ( !has_contest ) {
+              urlhash['contest'] = contestList[0].id;
+              location.hash = "/contest/"+contestList[0].id;
+              initTable(contestList[0].id);
+            }
+        });
+        (has_contest) && initTable(contest);
     });
-    (has_contest) && initTable(contest);
+
+    $.route.addRoute('user_history', function(user) {
+        user = user || urlhash.user;
+        $.getJSON(API_DOMAIN + '/user/' + user + '/history?callback=?', function(data) {
+            removeTable();
+            data.history.forEach(function(history){
+                history.user_name = data.user_name;
+            });
+            renderHistoryTable(data);
+        });
+        location.hash = "/user/"+user;
+    });
+
+    $.route.call(urlhash.route || 'contest');
 });
 </script>
 </body>

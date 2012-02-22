@@ -52,7 +52,7 @@ function makeUserRecords( records ) {
         var c = r[i];
         var scores = c.scores;
 
-        var nameTag = '<a href="http://laika.redfeel.net:4416/user/' + c.rival_id + '/history" target="_user_history">' + c.name + '</a>';
+        var nameTag = '<a href="javascript:$.route.call(\'user_history\', ' + c.rival_id + ');">' + c.name + '</a>';
         ret += '<tr class="record">';
         ret += '<td>' + nameTag + '<br /><span class="pull-right best-diff">(' + (addCommas(c.total - best)) + ')</span></td>';
 
