@@ -157,7 +157,7 @@
 var valid_hash_regexp = new RegExp("\/contest\/\\d+\/.*");
 
 /*parameters*/
-(function (global) {    
+var extractHash = function (global) {
     var _params = location.search.substr(1).split("&"), _return_dict={};
     for ( var i = 0; i < _params.length; ++i ) {
         t = _params[i].split("=")
@@ -176,9 +176,11 @@ var valid_hash_regexp = new RegExp("\/contest\/\\d+\/.*");
         } else if ( userMatches && userMatches.length > 1 ) {
             global.urlhash.user     = userMatches[1];
             global.urlhash.route    = 'user_history';
+        } else {
+            global.urlhash.route    = '';
         }
     }
-})(window);
+};
 
 $(function(){
     // dropdown
@@ -390,7 +392,13 @@ $(function(){
         location.hash = "/user/"+user;
     });
 
-    $.route.call(urlhash.route || 'contest');
+    function onHashChange() {
+        extractHash(window);
+        $.route.call(urlhash.route || 'contest');
+    }
+
+    onHashChange();
+    //$(window).bind('hashchange', onHashChange);
 });
 </script>
 </body>
