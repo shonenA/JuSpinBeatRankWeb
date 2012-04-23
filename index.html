@@ -12,116 +12,14 @@
 <title>JuSpinBeat Contest Rank</title>
 <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" media="screen" />
 <link href="css/bootstrap.min.responsive" rel="stylesheet" type="text/css" media="screen" />
-<style type="text/css">
-  /* Override some defaults */
-  html, body {
-    background-color: #eee;
-  }
-  .container {
-    width: 500px;
-  }
-
-  .container-fluid {
-      min-width: 280px;
-  }
-
-  /* The white background content wrapper */
-  .container-fluid > .content {
-    background-color: #fff;
-    padding: 20px;
-    padding-top: 60px;
-    margin: 0 -20px; /* negative indent the amount of the padding to maintain the grid system */
-    -webkit-border-radius: 0 0 6px 6px;
-       -moz-border-radius: 0 0 6px 6px;
-            border-radius: 0 0 6px 6px;
-    -webkit-box-shadow: 0 1px 2px rgba(0,0,0,.15);
-       -moz-box-shadow: 0 1px 2px rgba(0,0,0,.15);
-            box-shadow: 0 1px 2px rgba(0,0,0,.15);
-  }
-
-  /* Page header tweaks */
-  .page-header {
-    background-color: #f5f5f5;
-    padding: 20px 20px 10px;
-    margin: -20px -20px 20px;
-  }
-
-  .item {
-    padding-top: 5px;
-    padding-bottom: 5px;
-    margin: 0;
-    border-bottom: 1px solid #ddd;
-  }
-
-  /* jbt */
-@media (min-width: 640px) {
-  .records th { text-align: center; background: #444; color: white; vertical-align: middle; }
-  .records th.user { min-width: 100px; }
-
-  .difficulty-BASIC { background: #484 !important; color: white; }
-  .difficulty-ADVANCED { background: #884 !important; color: white; }
-  .difficulty-EXTREME { background: #955 !important; color: white; }
-
-  .record td { vertical-align: middle; }
-  .record .rank { line-height: 0%; font-size: 40px; color: #DDD; font-family: Tahoma; }
-  .record .score { line-height: 0%; font-size: 18px;}
-  .record .best-diff { font-size: 10px; }
-
-  .nav-shortcut, .dropdown, .pager > .previous, .pager > .next { cursor: pointer; }
-
-}
-@media (max-width: 639px) {
-  .container-fluid > .content {
-    background-color: #fff;
-    padding: 10px;
-    padding-top: 60px;
-  }
-
-  .content > .page-header {
-      margin-right: 0;
-  }
-
-  .records th { word-break: break-all;text-align: center; background: #444; color: white; vertical-align: middle; }
-  .records th.user { min-width: 60px; }
-  .difficulty-BASIC { background: #484 !important; color: white; }
-  .difficulty-ADVANCED { background: #884 !important; color: white; }
-  .difficulty-EXTREME { background: #955 !important; color: white; }
-
-  .record td { vertical-align: middle; }
-  .record .rank { line-height: 0%; font-size: 25px; color: #DDD; font-family: Tahoma; }
-
-  .record .score { 
-    font-size: 18px; 
-    width: 30px;
-    overflow: hidden;
-  	text-overflow: clip;
-  }
-  
-  .record > .total { text-align: right; }
-  .record > .total > .score { 
-    overflow: visible !important;
-  	text-overflow: string !important;
-  }
-  .record > .total > .pull-right {
-      float: none;
-  }
-
-  .record .best-diff { font-size: 10px; }
-
-  .nav-shortcut, .dropdown, .pager > .previous, .pager > .next { cursor: pointer; }
-}
-
-</style>
-
+<link href="css/juspinbeat.css" rel="stylesheet" type="text/css" media="screen" />
 </head>
 <body>
-<div class="topbar navbar navbar-fixed-top">
-    <div class="fill navbar-inner">
+<div class="navbar">
+    <div class="navbar-inner">
         <div class="container-fluid">
-            <a class="brand" href="#top">JuSpinBeat Contest Rank</a>
+            <a class="brand" href=".">JuSpinBeat Rank</a>
             <ul class="nav">
-                <li><a class="nav-shortcut" to-href="record">Record</a></li>
-                <li><a class="nav-shortcut" to-href="history">History</a></li>
                 <li class="dropdown">
                     <a class="dropdown-toggle">List</a>
                     <ul class="dropdown-menu">
@@ -352,29 +250,31 @@ $(function(){
     $.route.addRoute('contest', function() {
         var contest = urlhash['contest']//params['contest'];
         var has_contest = !('undefined' === typeof contest);
-        $.getJSON(API_DOMAIN + '/contest?callback=?', function(data) {
-            if( !dataValidate(data, ['current_contest_list']) ) {
+        $.getJSON(API_DOMAIN + '/contest/all?callback=?', function(data) {
+            if( !dataValidate(data, ['contest_list']) ) {
                 return;
             }
 
-            var contestList = data.current_contest_list;
+            var contestList = data.contest_list;
             if( contestList.length == 0 ) {
                 return;
             }
 
+            contestList = contestList.sort(function(a,b){return b.id-a.id;});
+
             contestList.forEach(function(_contest) {
-              $('<li>').append($('<a>').click(function() {
-                  $('.dropdown-menu').toggle();
-                  removeTable();
-                  initTable(_contest.id);
-                  location.hash = "/contest/"+_contest.id;
-                  }).text(_contest.name).css('cursor','pointer')).appendTo('.dropdown-menu');
-              });
+                $('<li>').append($('<a>').click(function() {
+                    $('.dropdown-menu').toggle();
+                    removeTable();
+                    initTable(_contest.id);
+                    location.hash = "/contest/"+_contest.id;
+                }).text(_contest.name).css('cursor','pointer')).appendTo('.dropdown-menu');
+            });
 
             if ( !has_contest ) {
-              urlhash['contest'] = contestList[0].id;
-              location.hash = "/contest/"+contestList[0].id;
-              initTable(contestList[0].id);
+                urlhash['contest'] = contestList[0].id;
+                location.hash = "/contest/"+contestList[0].id;
+                initTable(contestList[0].id);
             }
         });
         (has_contest) && initTable(contest);
