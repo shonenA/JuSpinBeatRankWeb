@@ -22,12 +22,11 @@
             <ul class="nav">
                 <li class="dropdown">
                     <a class="dropdown-toggle">List</a>
-                    <ul class="dropdown-menu">
-                    </ul>
+                    <ul class="dropdown-menu"></ul>
                 </li>
+                <li><a class="history-toggle">Active</a></li>
             </ul>
-            <ul class="nav pull-right" id="link">
-            </ul>
+            <ul class="nav pull-right" id="link"></ul>
         </div>
     </div>
 </div>
@@ -247,6 +246,13 @@ $(function(){
         $('.records').remove();
     }
 
+    function isActiveContest(contest) {
+        var now = new Date();
+        var start = new Date(contest.start);
+        var end = new Date(contest.end);
+        return start <= now && now <= end;
+    }
+
     $.route.addRoute('contest', function() {
         var contest = urlhash['contest']//params['contest'];
         var has_contest = !('undefined' === typeof contest);
@@ -263,13 +269,28 @@ $(function(){
             contestList = contestList.sort(function(a,b){return b.id-a.id;});
 
             contestList.forEach(function(_contest) {
-                $('<li>').append($('<a>').click(function() {
+                var li = $('<li>').append($('<a>').click(function() {
                     $('.dropdown-menu').toggle();
                     removeTable();
                     initTable(_contest.id);
                     location.hash = "/contest/"+_contest.id;
                 }).text(_contest.name).css('cursor','pointer')).appendTo('.dropdown-menu');
+
+                if( !isActiveContest(_contest) ) {
+                    li.addClass('history-contest');
+                }
             });
+
+            $('.history-toggle').click(function() {
+                $(this).parent().toggleClass(function(){
+                    if( $(this).hasClass('active') ) {
+                        $('.dropdown-menu > li.history-contest').show();
+                    } else {
+                        $('.dropdown-menu > li.history-contest').hide();
+                    }
+                    return 'active';
+                });
+            }).css('cursor', 'pointer').click();
 
             if ( !has_contest ) {
                 urlhash['contest'] = contestList[0].id;
