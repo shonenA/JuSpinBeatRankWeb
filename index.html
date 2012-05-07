@@ -141,7 +141,7 @@ $(function(){
         html += "</table>";
 
 
-        $('#record').append(html);
+        $('#record').append(html).show();
         $('.records').tablesorter({
             headers:{0:{sorter:false}},
             textExtraction: function(cell) {
@@ -203,7 +203,7 @@ $(function(){
         prepareHistory(data.history);
         html += makeHistory(data.history);
         html += makePagination(data);
-        $('#history').append(html);
+        $('#history').append(html).show();
         $('.history').tablesorter({sortList:[[0,1]]});
 
         // no-cache
@@ -241,9 +241,8 @@ $(function(){
     }
 
     function removeTable() {
-        $('.history').remove();
-        $('.pager').remove();
-        $('.records').remove();
+        $('.history, .pager, .records').remove();
+        $('#history, #record').hide();
     }
 
     function isActiveContest(contest) {
@@ -253,9 +252,7 @@ $(function(){
         return start <= now && now <= end;
     }
 
-    $.route.addRoute('contest', function() {
-        var contest = urlhash['contest']//params['contest'];
-        var has_contest = !('undefined' === typeof contest);
+    function loadContests(callback) {
         $.getJSON(API_DOMAIN + '/contest/all?callback=?', function(data) {
             if( !dataValidate(data, ['contest_list']) ) {
                 return;
@@ -273,7 +270,7 @@ $(function(){
                     $('.dropdown-menu').toggle();
                     removeTable();
                     initTable(_contest.id);
-                    location.hash = "/contest/"+_contest.id;
+                    changeHashSafely("/contest/"+_contest.id);
                 }).text(_contest.name).css('cursor','pointer')).appendTo('.dropdown-menu');
 
                 if( !isActiveContest(_contest) ) {
@@ -292,9 +289,18 @@ $(function(){
                 });
             }).css('cursor', 'pointer').click();
 
+            if(callback) callback(data, contestList);
+        });
+    }
+
+    $.route.addRoute('contest', function() {
+        var contest = urlhash['contest']//params['contest'];
+        var has_contest = !('undefined' === typeof contest);
+        removeTable();
+        loadContests(function(data, contestList) {
             if ( !has_contest ) {
                 urlhash['contest'] = contestList[0].id;
-                location.hash = "/contest/"+contestList[0].id;
+                changeHashSafely("/contest/"+contestList[0].id);
                 initTable(contestList[0].id);
             }
         });
@@ -310,7 +316,8 @@ $(function(){
             });
             renderHistoryTable(data);
         });
-        location.hash = "/user/"+user;
+        loadContests();
+        changeHashSafely("/user/"+user);
     });
 
     function onHashChange() {
@@ -318,8 +325,14 @@ $(function(){
         $.route.call(urlhash.route || 'contest');
     }
 
+    function changeHashSafely(hash) {
+        $(window).unbind('hashchange', onHashChange);
+        location.hash = hash;
+        setTimeout(function(){$(window).bind('hashchange', onHashChange);}, 0);
+    }
+
     onHashChange();
-    //$(window).bind('hashchange', onHashChange);
+    $(window).bind('hashchange', onHashChange);
 });
 </script>
 </body>
