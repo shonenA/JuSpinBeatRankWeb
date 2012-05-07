@@ -338,11 +338,11 @@ $(function(){
 
     onHashChange();
     $(window).bind('hashchange', onHashChange);
-    $(".refresh-button").live("click",function() { 
+    $(".refresh-button").click(function() { 
         extractHash(window);
         removeTable();
         initTable(urlhash.contest);
-    });
+    }).css('cursor', 'pointer');
 });
 </script>
 </body>
