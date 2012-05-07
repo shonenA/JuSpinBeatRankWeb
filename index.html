@@ -34,7 +34,8 @@
 <div class="container-fluid" id="contents">
     <div class="content" id="record">
         <div class="page-header">
-            <h1>Record</h1>
+            <h1 class="refresh-button">Record</h1>
+            <span class="contest-last-updated refresh-button"></span>
         </div>
     </div>
 
@@ -141,6 +142,7 @@ $(function(){
         html += makeUserRecords(data.user_records);
         html += "</table>";
 
+        $(".contest-last-updated").text("last update : " + data.contest_info.last_update + " (click to refresh)");
 
         $('#record').append(html).show();
         $('.records').tablesorter({
@@ -336,6 +338,11 @@ $(function(){
 
     onHashChange();
     $(window).bind('hashchange', onHashChange);
+    $(".refresh-button").live("click",function() { 
+        extractHash(window);
+        removeTable();
+        initTable(urlhash.contest);
+    });
 });
 </script>
 </body>
