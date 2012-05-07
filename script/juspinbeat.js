@@ -52,7 +52,7 @@ function makeUserRecords( records ) {
         var c = r[i];
         var scores = c.scores;
 
-        var nameTag = '<a href="javascript:$.route.call(\'user_history\', ' + c.rival_id + ');">' + c.name + '</a>';
+        var nameTag = '<a href="javascript:$.route.callRoute(\'user_history\', ' + c.rival_id + ');">' + c.name + '</a>';
         ret += '<tr class="record">';
         ret += '<td>' + nameTag + '<br /><span class="pull-right best-diff">(' + (addCommas(c.total - best)) + ')</span></td>';
 
