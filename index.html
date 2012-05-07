@@ -110,6 +110,7 @@ $(function(){
     };
 
     $.juspinbeat.currentContestId = null;
+    $.juspinbeat.contestListLoaded = false;
 
     var API_DOMAIN = "http://laika.redfeel.net:4416";
     var CONTEST_BASE_URL = "http://p.eagate.573.jp/game/jubeat/copious/p/contest/detail.html?rally_id=";
@@ -253,7 +254,9 @@ $(function(){
     }
 
     function loadContests(callback) {
+        if( $.juspinbeat.contestListLoaded ) return;
         $.getJSON(API_DOMAIN + '/contest/all?callback=?', function(data) {
+            $.juspinbeat.contestListLoaded = true;
             if( !dataValidate(data, ['contest_list']) ) {
                 return;
             }
