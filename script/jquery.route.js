@@ -13,7 +13,7 @@
                 return this;
             }
 
-            this.call = function(name) {
+            this.callRoute = function(name) {
                 if( typeof(name) === 'undefined' ) return this;
                 if( typeof(routeList[name]) === 'undefined' ) return this;
 
