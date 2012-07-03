@@ -333,9 +333,6 @@ $(function(){
         user = user || urlhash.user;
         $.getJSON(API_DOMAIN + '/user/' + user + '/history?callback=?', function(data) {
             removeTable();
-            data.history.forEach(function(history){
-                history.user_name = data.user_name;
-            });
             $.juspinbeat.currentPage = 1;
             $.juspinbeat.currentHistory = 'user';
             $.juspinbeat.currentUserId = user;
