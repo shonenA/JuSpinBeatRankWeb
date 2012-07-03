@@ -145,13 +145,17 @@ $(function(){
         $(".contest-last-updated").text("last update : " + data.contest_info.last_update + " (click to refresh)");
 
         $('#record').append(html).show();
-        $('.records').tablesorter({
-            headers:{0:{sorter:false}},
-            textExtraction: function(cell) {
-            return new Number($(cell).find('.score').text().replace(/,/g,'')) * -1;
-            },
-            sortList:[[6,0]]
-        });
+        try {
+            $('.records').tablesorter({
+                headers:{0:{sorter:false}},
+                textExtraction: function(cell) {
+                    return new Number($(cell).find('.score').text().replace(/,/g,'')) * -1;
+                },
+                sortList:[[6,0]]
+            });
+        } catch(e) {
+            console.error(e);
+        }
 
         $.juspinbeat.cache['record'][$.juspinbeat.currentContestId] = data;
         $.juspinbeat.busy('record', false);
@@ -179,7 +183,8 @@ $(function(){
             return;
         }
         
-        var url = API_DOMAIN + '/contest/' + $.juspinbeat.currentContestId + '/history';
+        var id = ($.juspinbeat.currentHistory==='contest')?$.juspinbeat.currentContestId:$.juspinbeat.currentUserId;
+        var url = API_DOMAIN + '/' + $.juspinbeat.currentHistory + '/' + id + '/history';
 
         if( $.juspinbeat.currentPage > 1 ) {
             url += '/page/' + $.juspinbeat.currentPage;
@@ -202,12 +207,23 @@ $(function(){
             return;
         }
 
+
+        if( $.juspinbeat.currentHistory === 'user' ) {
+            data.history.forEach(function(history){
+                history.user_name = $.juspinbeat.currentUserName;
+            });
+        }
+
         var html = '';
         prepareHistory(data.history);
         html += makeHistory(data.history);
         html += makePagination(data);
         $('#history').append(html).show();
-        $('.history').tablesorter({sortList:[[0,1]]});
+        try {
+            $('.history').tablesorter({sortList:[[0,1]]});
+        } catch(e) {
+            console.error(e);
+        }
 
         // no-cache
         //$.juspinbeat.cache['history'][$.juspinbeat.currentContestId] = data;
@@ -235,6 +251,7 @@ $(function(){
         }
 
         // History Table
+        $.juspinbeat.currentHistory = 'contest';
         if( $.juspinbeat.cache['history'][contestId] ) {
             renderHistoryTable($.juspinbeat.cache['history'][contestId]);
         } else {
@@ -319,6 +336,10 @@ $(function(){
             data.history.forEach(function(history){
                 history.user_name = data.user_name;
             });
+            $.juspinbeat.currentPage = 1;
+            $.juspinbeat.currentHistory = 'user';
+            $.juspinbeat.currentUserId = user;
+            $.juspinbeat.currentUserName = data.user_name;
             renderHistoryTable(data);
         });
         loadContests();
